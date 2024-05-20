@@ -1,2 +1,14 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+  export let data;
+
+  const emails = data.emails;
+
+  console.log(emails);
+</script>
+
+{#each emails as email}
+  <h1>{email.id}</h1>
+  <p>{email.content}</p>
+  <p>{email.email_timestamp}</p>
+{/each}
+
