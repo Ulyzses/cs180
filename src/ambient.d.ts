@@ -3,6 +3,7 @@ declare interface EmailMessage {
   created_at: string,
   email: string,
   email_timestamp: string,
+  from: string,
   content: string | null,
   valid: boolean,
   tag: boolean | null,
