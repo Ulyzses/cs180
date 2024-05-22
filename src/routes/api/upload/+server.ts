@@ -6,6 +6,7 @@ interface UploadRequest {
   email: string;
   messages: {
     timestamp: string;
+    subject: string;
     from: string;
     content: string;
   }[];
@@ -32,10 +33,11 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   // Format the messages to match the database schema
-  const formattedMessages = messages.map(({ timestamp, from, content }) => {
+  const formattedMessages = messages.map(({ timestamp, subject, from, content }) => {
     return {
       email,
       email_timestamp: timestamp,
+      subject,
       from,
       content,
       valid: true,
