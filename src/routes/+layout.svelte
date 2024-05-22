@@ -35,22 +35,31 @@
 
 {#if session}
   <nav>
-    <p>Logged in as {session.user.email}</p>
+    <p>Logged in as <strong>{session.user.email}</strong></p>
     <button on:click={signOut}>Logout</button>
   </nav>
+  <div class="container">
+    <slot />
+  </div>
+{:else}
+  <div class="container">
+    <slot />
+  </div>
 {/if}
 
-<slot />
 
 <style>
-  * {
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+  :global(*) {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   :global(html), :global(body) {
-    margin: 0;
-    padding: 0;
     overflow: hidden;
+    font-family: 'IBM Plex Sans', sans-serif;
   }
   
   nav {
@@ -61,5 +70,14 @@
     padding: 0 1rem;
     background-color: #f9f9f9;
     border-bottom: 1px solid #e0e0e0;
+  }
+
+  nav button {
+    cursor: pointer;
+    padding: 0.25rem 1rem;
+  }
+
+  .container {
+    height: calc(100vh - 4rem);
   }
 </style>

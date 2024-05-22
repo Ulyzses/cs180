@@ -19,7 +19,12 @@
 		align-items: center;
 	}
 
+	p {
+		margin: 1rem;
+	}
+
 	button {
-		padding: 1rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
 	}
 </style>
