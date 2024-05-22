@@ -11,4 +11,3 @@
     <iframe srcdoc="{email.content}" />
   <p>{email.email_timestamp}</p>
 {/each}
-
