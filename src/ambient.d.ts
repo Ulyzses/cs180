@@ -8,5 +8,6 @@ declare interface EmailMessage {
   content: string,
   valid: boolean,
   tag: boolean | null,
+  tagger: string | null,
   tag_timestamp: string | null,
 }
