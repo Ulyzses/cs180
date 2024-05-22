@@ -3,12 +3,12 @@
 
   const emails = data.emails;
 
-  console.log(emails);
+  // console.log(data);
 </script>
 
 {#each emails as email}
   <h1>{email.id}</h1>
-  <p>{email.content}</p>
+    <iframe srcdoc="{email.content}" />
   <p>{email.email_timestamp}</p>
 {/each}
 
