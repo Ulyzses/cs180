@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { supabase } from '$lib/supabaseClient';
 
 interface UploadRequest {
   email: string;
@@ -12,7 +11,7 @@ interface UploadRequest {
   }[];
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals: { supabase } }) => {
   const { email, messages } = await request.json() as UploadRequest;
 
   // Check if email is provided
