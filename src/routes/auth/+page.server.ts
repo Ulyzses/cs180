@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit'
+import { PUBLIC_HOST } from '$env/static/public';
 
 import type { Actions } from './$types'
 
@@ -7,7 +8,7 @@ export const actions: Actions = {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: '/auth/callback',
+        redirectTo: `${PUBLIC_HOST}/auth/callback`,
       },
     });
 
