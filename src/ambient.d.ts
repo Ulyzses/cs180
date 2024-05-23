@@ -11,3 +11,10 @@ declare interface EmailMessage {
   tagger: string | null,
   tag_timestamp: string | null,
 }
+declare interface HistoryItem {
+  oldValue: EmailMessage,
+  newValue: EmailMessage,
+  text: string,
+  timestamp: Date,
+  allowUndo: boolean,
+}

@@ -1,80 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import TagButton from '$lib/components/TagButton.svelte';
+  import HistoryEntry from '$lib/components/HistoryEntry.svelte'; 
+  import { history } from '$lib/stores';
 
   export let data;
 
   const { session, user, supabase } = data;
-
-  // let untaggedEmails: EmailMessage[] = [];
-  // let taggedEmails: EmailMessage[] = [];
-  // let currentEmail: EmailMessage | null = null;
-  
-  // let error = "";
-
-  // onMount(async () => {
-  //   await retrieveEmails();
-
-  //   getEmail();
-  // });
-
-  // async function retrieveEmails() {
-  //   await updateDb();
-    
-  //   const queryResponse = await supabase
-  //     .from("emails")
-  //     .select()
-  //     .eq("email", user?.email)
-  //     .is("tag", null)
-  //     .order("id", { ascending: true })
-  //     .limit(5);
-    
-  //   if (queryResponse.error) {
-  //     error = queryResponse.error.message;
-  //     return;
-  //   }
-
-  //   const { data } = queryResponse;
-
-  //   untaggedEmails = [...untaggedEmails, ...data];
-  // }
-
-  // async function getEmail() {
-  //   currentEmail = null;
-
-  //   if (untaggedEmails.length <= 0) {
-  //     await retrieveEmails();
-  //   };
-
-  //   const email = untaggedEmails.shift() as EmailMessage;
-  //   untaggedEmails = untaggedEmails;
-
-  //   currentEmail = email;
-  //   console.log("Current", currentEmail);
-  // }
-
-  // function tagEmail() {
-  //   if (currentEmail) {
-  //     currentEmail.tag = true;
-  //     currentEmail.tag_timestamp = new Date().toISOString();
-  //     taggedEmails.push(currentEmail);
-  //   }
-    
-  //   getEmail();
-  // }
-
-  // async function updateDb() {
-  //   console.log("Tagged", taggedEmails);
-  
-  //   await supabase
-  //     .from("emails")
-  //     .upsert(taggedEmails)
-  //     .then((response) => {
-  //       console.log("Response", response);
-  //     });
-    
-  //   taggedEmails = [];
-  // }
 
   let currentEmail: EmailMessage;
   let error: string;
@@ -84,6 +16,7 @@
       .from("emails")
       .select()
       .eq("email", user?.email)
+      .eq("valid", true)
       .is("tag", null)
       .order("id", { ascending: true })
       .limit(1);
@@ -107,24 +40,48 @@
   async function tagNeed(tag: boolean) {
     if (!currentEmail) return;
 
+    const oldValue = {...currentEmail};
+
     currentEmail.tag = tag;
     currentEmail.tag_timestamp = new Date().toISOString();
     currentEmail.tagger = user?.email ?? "";
 
-    upsertEmail();
+    const newValue = {...currentEmail};
+    const text = `Tagged #${currentEmail.id} as ${tag ? "Need" : "Not Need"}`;
+
+    // @ts-ignore
+    const historyEntry: HistoryItem = {
+      oldValue,
+      newValue,
+      text,
+    }
+
+    upsertEmail(historyEntry);
   }
 
   async function tagValid(valid: boolean) {
     if (!currentEmail) return;
 
+    const oldValue = {...currentEmail};
+
     currentEmail.valid = valid;
     currentEmail.tag_timestamp = new Date().toISOString();
     currentEmail.tagger = user?.email ?? "";
 
-    upsertEmail();
+    const newValue = {...currentEmail};
+    const text = `Tagged #${currentEmail.id} as Invalid`;
+
+    // @ts-ignore
+    const historyEntry: HistoryItem = {
+      oldValue,
+      newValue,
+      text,
+    }
+
+    upsertEmail(historyEntry);
   }
 
-  async function upsertEmail() {
+  async function upsertEmail(historyEntry: HistoryItem) {
     if (!currentEmail) return;
 
     const response = await supabase
@@ -132,6 +89,13 @@
       .upsert(currentEmail);
 
     console.log("Response", response);
+
+    historyEntry.timestamp = new Date();
+    historyEntry.allowUndo = true;
+
+    $history = [historyEntry, ...$history]
+
+    console.log($history);
 
     getEmail();
   }
@@ -143,7 +107,18 @@
 
 <div class="row">
   <div class="history">
-
+    <div id="history-label">
+      <strong>History</strong>
+    </div>
+    {#if $history}
+      <div id="logs">
+        {#each $history as entry (entry.timestamp)}
+          <HistoryEntry item={entry} supabase={supabase} />
+        {/each}
+      </div>
+    {:else}
+      <p>No records</p>
+    {/if}
   </div>
   <div class="main">
     <div class="header">
@@ -196,20 +171,31 @@
     grid-row-gap: 0px;
   }
 
-  .row > * {
-    padding: 0 1rem;
-  }
-
   .history {
     grid-area: 1 / 1 / 2 / 2;
     width: 100%;
     border-right: 1px solid #e0e0e0;
+    
+    height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  #history-label {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  #logs {
+    flex-grow: 1;
+    overflow-y: auto;
   }
 
   .main {
     grid-area: 1 / 2 / 2 / 3;
     display: flex;
     flex-direction: column;
+    padding: 0 1rem;
   }
 
   .header {

@@ -55,6 +55,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    transition-duration: 300ms;
   }
 
   :global(html), :global(body) {
