@@ -2,13 +2,12 @@
 	import { onMount } from 'svelte';
 	import TagButton from '$lib/components/TagButton.svelte';
   import HistoryEntry from '$lib/components/HistoryEntry.svelte'; 
-  import { history } from '$lib/stores';
+  import { history, currentEmail } from '$lib/stores';
 
   export let data;
 
   const { session, user, supabase } = data;
 
-  let currentEmail: EmailMessage;
   let error: string;
 
   async function getEmail() {
@@ -18,8 +17,7 @@
       .eq("email", user?.email)
       .eq("valid", true)
       .is("tag", null)
-      .order("id", { ascending: true })
-      .limit(1);
+      .limit(1)
 
     if (response.error) {
       console.error("Error", response.error.message);
@@ -34,20 +32,20 @@
       return;
     }
 
-    currentEmail = data[0];
+    $currentEmail = data[0];
   }
 
   async function tagNeed(tag: boolean) {
-    if (!currentEmail) return;
+    if (!$currentEmail) return;
 
-    const oldValue = {...currentEmail};
+    const oldValue = {...$currentEmail};
 
-    currentEmail.tag = tag;
-    currentEmail.tag_timestamp = new Date().toISOString();
-    currentEmail.tagger = user?.email ?? "";
+    $currentEmail.tag = tag;
+    $currentEmail.tag_timestamp = new Date().toISOString();
+    $currentEmail.tagger = user?.email ?? "";
 
-    const newValue = {...currentEmail};
-    const text = `Tagged #${currentEmail.id} as ${tag ? "Need" : "Not Need"}`;
+    const newValue = {...$currentEmail};
+    const text = `Tagged #${$currentEmail.id} as ${tag ? "Need" : "Not Need"}`;
 
     // @ts-ignore
     const historyEntry: HistoryItem = {
@@ -60,16 +58,16 @@
   }
 
   async function tagValid(valid: boolean) {
-    if (!currentEmail) return;
+    if (!$currentEmail) return;
 
-    const oldValue = {...currentEmail};
+    const oldValue = {...$currentEmail};
 
-    currentEmail.valid = valid;
-    currentEmail.tag_timestamp = new Date().toISOString();
-    currentEmail.tagger = user?.email ?? "";
+    $currentEmail.valid = valid;
+    $currentEmail.tag_timestamp = new Date().toISOString();
+    $currentEmail.tagger = user?.email ?? "";
 
-    const newValue = {...currentEmail};
-    const text = `Tagged #${currentEmail.id} as Invalid`;
+    const newValue = {...$currentEmail};
+    const text = `Tagged #${$currentEmail.id} as Invalid`;
 
     // @ts-ignore
     const historyEntry: HistoryItem = {
@@ -82,11 +80,11 @@
   }
 
   async function upsertEmail(historyEntry: HistoryItem) {
-    if (!currentEmail) return;
+    if (!$currentEmail) return;
 
     const response = await supabase
       .from("emails")
-      .upsert(currentEmail);
+      .upsert($currentEmail);
 
     console.log("Response", response);
 
@@ -123,10 +121,10 @@
   <div class="main">
     <div class="header">
       <div class="left">
-        <h1>#{currentEmail?.id ?? ""}</h1>
-        <p><span class="fixed">SUBJECT</span>{currentEmail?.subject ?? ""}</p>
-        <p><span class="fixed">FROM</span>{currentEmail?.from ?? ""}</p>
-        <p><span class="fixed">TIME</span>{currentEmail ? new Date(currentEmail.email_timestamp) : ""}</p>
+        <h1>#{$currentEmail?.id ?? ""}</h1>
+        <p><span class="fixed">SUBJECT</span>{$currentEmail?.subject ?? ""}</p>
+        <p><span class="fixed">FROM</span>{$currentEmail?.from ?? ""}</p>
+        <p><span class="fixed">TIME</span>{$currentEmail ? new Date($currentEmail.email_timestamp) : ""}</p>
       </div>
       <div class="right">
         <TagButton
@@ -134,24 +132,24 @@
           icon="mdi:thumb-up"
           text="Need"
           onClick={() => { tagNeed(true) }}
-          disabled={!currentEmail} />
+          disabled={!$currentEmail} />
         <TagButton
           bgColor="#FB4B4E"
           icon="mdi:thumb-down"
           text="No Need"
           onClick={() => { tagNeed(false) }}
-          disabled={!currentEmail}/>
+          disabled={!$currentEmail}/>
         <TagButton
           bgColor="#4062BB"
           icon="mdi:do-not-disturb-alt"
           text="Invalid"
           onClick={() => { tagValid(false)}}
-          disabled={!currentEmail}/>
+          disabled={!$currentEmail}/>
       </div>
     </div>
-    {#if currentEmail}
+    {#if $currentEmail}
       <div class="main-content">
-        <iframe title="{currentEmail.id}" frameBorder="0" srcdoc="{currentEmail.content}" />
+        <iframe title="{$currentEmail.id}" frameBorder="0" srcdoc="{$currentEmail.content}" />
       </div>
     {:else}
       <p>No emails</p>

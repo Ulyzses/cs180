@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
 	import type { SupabaseClient } from '@supabase/supabase-js';
-  import { history } from '$lib/stores';
+  import { history, currentEmail } from '$lib/stores';
 
   export let item: HistoryItem;
   export let supabase: SupabaseClient;
@@ -12,22 +12,41 @@
     if (!item || !item.allowUndo) return;
 
     const { oldValue, newValue } = item;
+    const { id } = oldValue;
 
-    const response = await supabase
+    const upsertResponse = await supabase
       .from("emails")
       .upsert(oldValue);
-    
-    console.log(response);
 
     const newHistoryItem: HistoryItem = {
       oldValue: newValue,
       newValue: oldValue,
-      text: `Reverted tag for #${oldValue.id}`,
+      text: `Reverted tag for #${id}`,
       timestamp: new Date(),
       allowUndo: false,
     }
 
     $history = [newHistoryItem, ...$history];
+
+    const getResponse = await supabase
+      .from("emails")
+      .select()
+      .eq("id", id)
+      .limit(1)
+
+    if (getResponse.error) {
+      console.error("Error", getResponse.error.message);
+      return;
+    }
+    
+    const { data } = getResponse;
+    
+    if (data.length <= 0) {
+      console.error("No emails returned");
+      return;
+    }
+
+    $currentEmail = data[0];
   }
 </script>
 
