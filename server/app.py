@@ -41,15 +41,16 @@ def running():
 
     # load the model and vectorizer
     vectorizer = joblib.load('tfidf.pkl')
-    model = joblib.load('svmsvc_model.pkl')
+    model = joblib.load('svm_prob.pkl')
 
     # predict the email
     vectorized_text = vectorizer.transform([text])
-    prediction = model.predict(vectorized_text)
+    probablities = model.predict_proba(vectorized_text)
+    prediction = 0 if probablities[0][0] > 0.5 else 1
 
     # create the response as a dict
     response = {
-        'prediction': prediction.tolist()[0]
+        'prediction': prediction
     } 
 
     # put the response in json and return

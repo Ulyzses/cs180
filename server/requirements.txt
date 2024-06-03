@@ -12,7 +12,7 @@ MarkupSafe==2.1.5
 nltk==3.8.1
 numpy==1.26.4
 regex==2024.5.15
-scikit-learn==1.5.0
+scikit-learn==1.4.2
 scipy==1.13.1
 threadpoolctl==3.5.0
 tqdm==4.66.4
